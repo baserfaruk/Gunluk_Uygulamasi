@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kişisel Günlük</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Kişisel Günlük</h1>
+      <button id="new-entry-btn">Yeni Günlük</button>
+      <button id="toggle-theme-btn">Gece Modu</button>
+    </header>
+
+    <div class="entry-list">
+      <!-- Günlükler buraya eklenecek -->
+    </div>
+
+    <div class="entry-form" id="entry-form">
+      <h2>Yeni Günlük</h2>
+      <input type="text" id="entry-title" placeholder="Başlık..." />
+      <textarea id="entry-content" placeholder="Bugün ne oldu?" rows="6"></textarea>
+      <button id="save-entry-btn">Kaydet</button>
+      <button id="cancel-entry-btn">İptal</button>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
