@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const entryTitleInput = document.getElementById('entry-title');
   const entryContentInput = document.getElementById('entry-content');
   const entryList = document.querySelector('.entry-list');
+  let editIndex = null;
 
   // Gece modu geçişi
   toggleThemeBtn.addEventListener('click', () => {
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Yeni günlük formunu aç
   newEntryBtn.addEventListener('click', () => {
     entryForm.style.display = 'block';
+    editIndex = null;
   });
 
   // Günlük kaydetme
@@ -26,8 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (title && content) {
       try {
-        await window.__TAURI__.core.invoke('save_entry', { title, content, date });
-        alert('Günlük başarıyla kaydedildi!');
+        if (editIndex === null) {
+          await window.__TAURI__.core.invoke('save_entry', { title, content, date });
+          alert('Günlük başarıyla kaydedildi!');
+        } else {
+          await window.__TAURI__.core.invoke('edit_entry', { index: editIndex, title, content, date });
+          alert('Günlük başarıyla güncellendi!');
+        }
         loadEntries(); // Günlükleri tekrar yükle
       } catch (error) {
         alert('Hata: ' + error);
@@ -53,15 +60,36 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const entries = await window.__TAURI__.core.invoke('get_entries');
       entryList.innerHTML = '';
-      entries.forEach(entry => {
+      entries.forEach((entry, index) => {
         const entryElement = document.createElement('div');
         entryElement.classList.add('entry');
         entryElement.innerHTML = `
           <div class="entry-title">${entry.title}</div>
           <div class="entry-content">${entry.content}</div>
           <div class="entry-date">${entry.date}</div>
+          <button class="edit-entry-btn">Düzenle</button>
+          <button class="delete-entry-btn">Sil</button>
         `;
         entryList.appendChild(entryElement);
+
+        // Düzenleme butonuna tıklama
+        entryElement.querySelector('.edit-entry-btn').addEventListener('click', () => {
+          entryTitleInput.value = entry.title;
+          entryContentInput.value = entry.content;
+          entryForm.style.display = 'block';
+          editIndex = index;
+        });
+
+        // Silme butonuna tıklama
+        entryElement.querySelector('.delete-entry-btn').addEventListener('click', async () => {
+          try {
+            await window.__TAURI__.core.invoke('delete_entry', { index });
+            alert('Günlük başarıyla silindi!');
+            loadEntries(); // Günlükleri tekrar yükle
+          } catch (error) {
+            alert('Hata: ' + error);
+          }
+        });
       });
     } catch (error) {
       alert('Günlükler yüklenirken hata oluştu: ' + error);

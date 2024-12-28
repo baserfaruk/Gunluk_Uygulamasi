@@ -47,9 +47,51 @@ fn get_entries() -> Result<Vec<Entry>, String> {
     }
 }
 
+#[tauri::command]
+fn edit_entry(index: usize, title: String, content: String, date: String) -> Result<String, String> {
+    let path = "entries.json";
+
+    if Path::new(path).exists() {
+        let data = fs::read_to_string(path).map_err(|e| e.to_string())?;
+        let mut entries: Vec<Entry> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
+
+        if index < entries.len() {
+            entries[index] = Entry { title, content, date };
+            let data = serde_json::to_string(&entries).map_err(|e| e.to_string())?;
+            fs::write(path, data).map_err(|e| e.to_string())?;
+            Ok("Günlük güncellendi.".to_string())
+        } else {
+            Err("Geçersiz indeks.".to_string())
+        }
+    } else {
+        Err("Günlük bulunamadı.".to_string())
+    }
+}
+
+#[tauri::command]
+fn delete_entry(index: usize) -> Result<String, String> {
+    let path = "entries.json";
+
+    if Path::new(path).exists() {
+        let data = fs::read_to_string(path).map_err(|e| e.to_string())?;
+        let mut entries: Vec<Entry> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
+
+        if index < entries.len() {
+            entries.remove(index);
+            let data = serde_json::to_string(&entries).map_err(|e| e.to_string())?;
+            fs::write(path, data).map_err(|e| e.to_string())?;
+            Ok("Günlük silindi.".to_string())
+        } else {
+            Err("Geçersiz indeks.".to_string())
+        }
+    } else {
+        Err("Günlük bulunamadı.".to_string())
+    }
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![save_entry, get_entries])
+        .invoke_handler(tauri::generate_handler![save_entry, get_entries, edit_entry, delete_entry])
         .run(tauri::generate_context!())
         .expect("failed to run app");
 }
